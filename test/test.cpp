@@ -1,142 +1,230 @@
+#define CUSTOM_SETTINGS
+#define INCLUDE_GAMEPAD_MODULE
+#include <DabbleESP32.h>
+
 #include <Arduino.h>
-#include <motor.h>
-// #include <DabbleESP32.h>
 
-// Assign value
-Motor motor1(19, 18, 22, 0); // Direction pin for motor A
-Motor motor2(17, 16, 23, 1); // Direction pin for motor B
-Motor motor3(25, 33, 15, 2); // Direction pin for motor C
-Motor motor4(27, 26, 14, 3); // Direction pin for motor C
+#define RightFrontFWD 19
+#define RightFrontBWD 19
+#define RightBackFWD 17
+#define RightBackBWD 16
 
-// void connectDabble()
-// {
-//     Dabble.begin("Dr.Hiển");
-//     Serial.println("Ready Dabble.\n");
-// }
+#define LeftFrontFWD 25
+#define LeftFrontBWD 33
+#define LeftBackFWD 27
+#define LeftBackBWD 26
+
+// Motor motor1(19, 18, 22, 0); // Direction pin and pwm channel for motor A
+// Motor motor2(17, 16, 23, 1); // Direction pin and pwm channel for motor B
+// Motor motor3(25, 33, 15, 2); // Direction pin and pwm channel for motor C
+// Motor motor4(27, 26, 14, 3); // Direction pin and pwm channel for motor C
 
 void setup()
 {
-    Serial.begin(115200);
-    // connectDabble();
+    pinMode(RightFrontFWD, OUTPUT);
+    pinMode(RightFrontBWD, OUTPUT);
+    pinMode(RightBackFWD, OUTPUT);
+    pinMode(RightBackBWD, OUTPUT);
+    pinMode(LeftFrontFWD, OUTPUT);
+    pinMode(LeftFrontBWD, OUTPUT);
+    pinMode(LeftBackFWD, OUTPUT);
+    pinMode(LeftBackBWD, OUTPUT);
+    // put your setup code here, to run once:
+    Serial.begin(115200);    // make sure your Serial Monitor is also set at this baud rate.
+    Dabble.begin("Dr.Hiển"); // set bluetooth name of your device
 }
 
-//------------------------------ Mapping Button ----------------------------------------//
-enum Button
+void moveForward()
 {
-    NONE,
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT,
-    SQUARE,
-    CIRCLE,
-    CROSS,
-    TRIANGLE,
-    START,
-    SELECT
-};
+    digitalWrite(RightFrontFWD, HIGH);
+    digitalWrite(RightFrontBWD, LOW);
+    digitalWrite(RightBackFWD, HIGH);
+    digitalWrite(RightBackBWD, LOW);
 
-// Button getButtonPressed()
-// {
-//     if (GamePad.isUpPressed())
-//     {
-//         // Serial.print("Up");
-//         return UP;
-//     }
-//     if (GamePad.isDownPressed())
-//     {
-//         // Serial.print("Down");
-//         return DOWN;
-//     }
-//     if (GamePad.isLeftPressed())
-//     {
-//         // Serial.print("Left");
-//         return LEFT;
-//     }
-//     if (GamePad.isRightPressed())
-//     {
-//         // Serial.print("Right");
-//         return RIGHT;
-//     }
-//     if (GamePad.isSquarePressed())
-//     {
-//         return SQUARE;
-//     }
-//     if (GamePad.isCirclePressed())
-//     {
-//         return CIRCLE;
-//     }
-//     if (GamePad.isCrossPressed())
-//     {
-//         return CROSS;
-//     }
-//     if (GamePad.isTrianglePressed())
-//     {
-//         return TRIANGLE;
-//     }
-//     if (GamePad.isStartPressed())
-//     {
-//         return START;
-//     }
-//     if (GamePad.isSelectPressed())
-//     {
-//         return SELECT;
-//     }
-//     return NONE;
-// }
-
-//------------------------------ Motor Functions ----------------------------------------//
-void moveForward(int speed)
-{
-    motor1.forward(speed);
-    motor2.forward(speed);
-    motor3.forward(speed);
-    motor4.forward(speed);
+    digitalWrite(LeftFrontFWD, HIGH);
+    digitalWrite(LeftFrontBWD, LOW);
+    digitalWrite(LeftBackFWD, HIGH);
+    digitalWrite(LeftBackBWD, LOW);
 }
 
-void moveBackward(int speed)
+void moveBackward()
 {
-    motor1.backward(speed);
-    motor2.backward(speed);
-    motor3.backward(speed);
-    motor4.backward(speed);
+    digitalWrite(RightFrontFWD, LOW);
+    digitalWrite(RightFrontBWD, HIGH);
+    digitalWrite(RightBackFWD, LOW);
+    digitalWrite(RightBackBWD, HIGH);
+
+    digitalWrite(LeftFrontFWD, LOW);
+    digitalWrite(LeftFrontBWD, HIGH);
+    digitalWrite(LeftBackFWD, LOW);
+    digitalWrite(LeftBackBWD, HIGH);
 }
 
-void moveSidewaysRight(int speed)
+void rotateRight()
 {
-    motor1.forward(speed);
-    motor2.backward(speed);
-    motor3.backward(speed);
-    motor4.forward(speed);
+    digitalWrite(RightFrontFWD, LOW);
+    digitalWrite(RightFrontBWD, HIGH);
+    digitalWrite(RightBackFWD, LOW);
+    digitalWrite(RightBackBWD, HIGH);
+
+    digitalWrite(LeftFrontFWD, HIGH);
+    digitalWrite(LeftFrontBWD, LOW);
+    digitalWrite(LeftBackFWD, HIGH);
+    digitalWrite(LeftBackBWD, LOW);
 }
 
-void moveSidewaysLeft(int speed)
+void rotateLeft()
 {
-    motor1.backward(speed);
-    motor2.forward(speed);
-    motor3.forward(speed);
-    motor4.backward(speed);
+    digitalWrite(RightFrontFWD, HIGH);
+    digitalWrite(RightFrontBWD, LOW);
+    digitalWrite(RightBackFWD, HIGH);
+    digitalWrite(RightBackBWD, LOW);
+
+    digitalWrite(LeftFrontFWD, LOW);
+    digitalWrite(LeftFrontBWD, HIGH);
+    digitalWrite(LeftBackFWD, LOW);
+    digitalWrite(LeftBackBWD, HIGH);
 }
 
-void stopMovement()
+void moveSidewaysRight()
 {
-    motor1.stop();
-    motor2.stop();
-    motor3.stop();
-    motor4.stop();
+    digitalWrite(RightFrontFWD, LOW);
+    digitalWrite(RightFrontBWD, HIGH);
+    digitalWrite(RightBackFWD, HIGH);
+    digitalWrite(RightBackBWD, LOW);
+
+    digitalWrite(LeftFrontFWD, HIGH);
+    digitalWrite(LeftFrontBWD, LOW);
+    digitalWrite(LeftBackFWD, LOW);
+    digitalWrite(LeftBackBWD, HIGH);
+}
+
+void moveSidewaysLeft()
+{
+    digitalWrite(RightFrontFWD, HIGH);
+    digitalWrite(RightFrontBWD, LOW);
+    digitalWrite(RightBackFWD, LOW);
+    digitalWrite(RightBackBWD, HIGH);
+
+    digitalWrite(LeftFrontFWD, LOW);
+    digitalWrite(LeftFrontBWD, HIGH);
+    digitalWrite(LeftBackFWD, HIGH);
+    digitalWrite(LeftBackBWD, LOW);
+}
+
+void moveRightForward()
+{
+    digitalWrite(RightFrontFWD, LOW);
+    digitalWrite(RightFrontBWD, LOW);
+    digitalWrite(RightBackFWD, HIGH);
+    digitalWrite(RightBackBWD, LOW);
+
+    digitalWrite(LeftFrontFWD, HIGH);
+    digitalWrite(LeftFrontBWD, LOW);
+    digitalWrite(LeftBackFWD, LOW);
+    digitalWrite(LeftBackBWD, LOW);
+}
+
+void moveLeftForward()
+{
+    digitalWrite(RightFrontFWD, HIGH);
+    digitalWrite(RightFrontBWD, LOW);
+    digitalWrite(RightBackFWD, LOW);
+    digitalWrite(RightBackBWD, LOW);
+
+    digitalWrite(LeftFrontFWD, LOW);
+    digitalWrite(LeftFrontBWD, LOW);
+    digitalWrite(LeftBackFWD, HIGH);
+    digitalWrite(LeftBackBWD, LOW);
+}
+
+void stopMoving()
+{
+    digitalWrite(RightFrontFWD, LOW);
+    digitalWrite(RightFrontBWD, LOW);
+    digitalWrite(RightBackFWD, LOW);
+    digitalWrite(RightBackBWD, LOW);
+
+    digitalWrite(LeftFrontFWD, LOW);
+    digitalWrite(LeftFrontBWD, LOW);
+    digitalWrite(LeftBackFWD, LOW);
+    digitalWrite(LeftBackBWD, LOW);
 }
 
 void loop()
 {
-    //------------------------------ Using Dabble ----------------------------------------//
-    // Dabble.processInput(); // this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
-    moveForward(255);
-    delay(1000);
-    moveBackward(255);
-    delay(1000);
-    moveSidewaysLeft(255);
-    delay(1000);
-    moveSidewaysRight(255);
-    delay(1000);
-    return;
+    Dabble.processInput(); // this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
+    Serial.print("KeyPressed: ");
+    if (GamePad.isUpPressed())
+    {
+        Serial.print("Up");
+        moveForward();
+    }
+    else if (GamePad.isDownPressed())
+    {
+        Serial.print("Down");
+        moveBackward();
+    }
+    else if (GamePad.isLeftPressed())
+    {
+        Serial.print("Left");
+        rotateLeft();
+    }
+    else if (GamePad.isRightPressed())
+    {
+        Serial.print("Right");
+        rotateRight();
+    }
+    else if (GamePad.isSquarePressed())
+    {
+        Serial.print("Square");
+        moveSidewaysRight();
+    }
+    else if (GamePad.isCirclePressed())
+    {
+        Serial.print("Circle");
+        moveSidewaysLeft();
+    }
+    else if (GamePad.isCrossPressed())
+    {
+        Serial.print("Cross");
+        moveRightForward();
+    }
+    else if (GamePad.isTrianglePressed())
+    {
+        Serial.print("Triangle");
+        moveLeftForward();
+    }
+    else
+    {
+        stopMoving();
+    }
+
+    /*if (GamePad.isStartPressed())
+      {
+      Serial.print("Start");
+      }
+
+      if (GamePad.isSelectPressed())
+      {
+      Serial.print("Select");
+      } */
+    Serial.print('\t');
+
+    int a = GamePad.getAngle();
+    Serial.print("Angle: ");
+    Serial.print(a);
+    Serial.print('\t');
+    int b = GamePad.getRadius();
+    Serial.print("Radius: ");
+    Serial.print(b);
+    Serial.print('\t');
+    float c = GamePad.getXaxisData();
+    Serial.print("x_axis: ");
+    Serial.print(c);
+    Serial.print('\t');
+    float d = GamePad.getYaxisData();
+    Serial.print("y_axis: ");
+    Serial.println(d);
+    Serial.println();
 }

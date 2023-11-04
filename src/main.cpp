@@ -1,6 +1,10 @@
+#define CUSTOM_SETTINGS
+#define INCLUDE_GAMEPAD_MODULE
+#include <DabbleESP32.h>
+
+#include <Arduino.h>
 #include <Arduino.h>
 #include <BluetoothSerial.h>
-#include <DabbleESP32.h>
 #include <PS4Controller.h>
 #include <ezLED.h>
 
@@ -10,25 +14,18 @@
 #include "esp_gap_bt_api.h"
 #include "esp_err.h"
 
-// Include classes
+// Custom classes
 #include "motor.h"
 
 // create an ezLED object for the LED
 ezLED led(BUILTIN_LED);
 
-// Assign value
-Motor motor1(19, 18, 22, 0); // Direction pin for motor A
-Motor motor2(17, 16, 23, 1); // Direction pin for motor B
-Motor motor3(25, 33, 15, 2); // Direction pin for motor C
-Motor motor4(27, 26, 14, 3); // Direction pin for motor C
+Motor motor1(19, 18, 22, 0); // Direction pin and pwm channel for motor A
+Motor motor2(17, 16, 23, 1); // Direction pin and pwm channel for motor B
+Motor motor3(33, 25, 15, 2); // Direction pin and pwm channel for motor C
+Motor motor4(27, 26, 14, 3); // Direction pin and pwm channel for motor C
 
-// ps4
-#define BUTTONS 0
-
-bool printed = true; // print once
-bool deviceConnected;
-int x;
-
+//------------------------------ Removing Paired Devices ----------------------------------------//
 // Create a BluetoothSerial object
 BluetoothSerial SerialBT;
 
@@ -59,7 +56,6 @@ void removePairedDevices()
 void onConnect()
 {
   Serial.println("Connected!");
-  return;
 }
 void onDisConnect()
 {
@@ -69,10 +65,10 @@ void onDisConnect()
 void connectPS4Controller()
 {
   // change mac address to ps4's mac
-  PS4.begin("E0:2B:E9:54:91:87");
-  Serial.println("Ready PS4.\n");
   PS4.attachOnConnect(onConnect);
   PS4.attachOnDisconnect(onDisConnect);
+  PS4.begin("E0:2B:E9:54:91:87");
+  Serial.println("Ready PS4.\n");
 }
 
 void connectDabble()
@@ -86,82 +82,25 @@ void setup()
   Serial.begin(115200);
   removePairedDevices();
   connectDabble();
-  // connectPS4Controller();
+  connectPS4Controller();
   pinMode(LED_BUILTIN, OUTPUT); // Build in led
   // SerialBT.begin("ESP32-noob");
-  delay(500);
 }
 
-void led_conection()
+void builtinled_conection(bool deviceConnected)
 {
-  Serial.print("Connected...");
-  led.blinkInPeriod(250, 750, 5000);
-  deviceConnected = true;
-}
-
-//------------------------------ Mapping Button ----------------------------------------//
-enum Button
-{
-  NONE,
-  UP,
-  DOWN,
-  LEFT,
-  RIGHT,
-  SQUARE,
-  CIRCLE,
-  CROSS,
-  TRIANGLE,
-  START,
-  SELECT
-};
-
-Button getButtonPressed()
-{
-  if (GamePad.isUpPressed() || PS4.Right())
+  if (deviceConnected == true)
   {
-    // Serial.print("Up");
-    return UP;
+    Serial.print("Connected...");
+    led.blinkInPeriod(250, 750, 5000);
+    delay(500);
   }
-  if (GamePad.isDownPressed() || PS4.Down())
+  else
   {
-    // Serial.print("Down");
-    return DOWN;
+    Serial.print("Disconnected...");
+    led.blinkInPeriod(250, 750, 5000);
+    delay(500);
   }
-  if (GamePad.isLeftPressed() || PS4.Left())
-  {
-    // Serial.print("Left");
-    return LEFT;
-  }
-  if (GamePad.isRightPressed())
-  {
-    // Serial.print("Right");
-    return RIGHT;
-  }
-  if (GamePad.isSquarePressed())
-  {
-    return SQUARE;
-  }
-  if (GamePad.isCirclePressed())
-  {
-    return CIRCLE;
-  }
-  if (GamePad.isCrossPressed())
-  {
-    return CROSS;
-  }
-  if (GamePad.isTrianglePressed())
-  {
-    return TRIANGLE;
-  }
-  if (GamePad.isStartPressed())
-  {
-    return START;
-  }
-  if (GamePad.isSelectPressed())
-  {
-    return SELECT;
-  }
-  return NONE;
 }
 
 //------------------------------ Motor Functions ----------------------------------------//
@@ -197,6 +136,85 @@ void moveSidewaysLeft(int speed)
   motor4.backward(speed);
 }
 
+// Move Diagonal
+void moveDiagonalForwardRight(int speed)
+{
+  motor1.forward(speed);
+  motor4.forward(speed);
+}
+
+void moveDiagonalForwardLeft(int speed)
+{
+  motor2.forward(speed);
+  motor3.forward(speed);
+}
+
+void moveDiagonalBackwardRight(int speed)
+{
+  motor2.backward(speed);
+  motor3.backward(speed);
+}
+
+void moveDiagonalBackwardLeft(int speed)
+{
+  motor1.backward(speed);
+  motor4.backward(speed);
+}
+
+// Pivot ( on one side)
+void movePivotForwardRight(int speed)
+{
+  motor1.forward(speed);
+  motor3.forward(speed);
+}
+
+void movePivotForwardLeft(int speed)
+{
+  motor2.forward(speed);
+  motor4.forward(speed);
+}
+
+void movePivotBackwardRight(int speed)
+{
+  motor1.backward(speed);
+  motor3.backward(speed);
+}
+
+void movePivotBackwardLeft(int speed)
+{
+  motor2.backward(speed);
+  motor4.backward(speed);
+}
+
+// Rotate
+void moveRotateRight(int speed)
+{
+  motor1.forward(speed);
+  motor2.backward(speed);
+  motor3.forward(speed);
+  motor4.backward(speed);
+}
+
+void moveRotateLeft(int speed)
+{
+  motor1.backward(speed);
+  motor2.forward(speed);
+  motor3.backward(speed);
+  motor4.forward(speed);
+}
+// Pitvot Sideways
+void movePivotSidewaysRight(int speed)
+{
+  motor1.forward(speed);
+  motor2.backward(speed);
+}
+
+void movePivotSidewaysLeft(int speed)
+{
+  motor1.backward(speed);
+  motor2.forward(speed);
+}
+
 void stopMovement()
 {
   motor1.stop();
@@ -208,52 +226,53 @@ void stopMovement()
 void loop()
 {
   led.loop();
-
   //------------------------------ Using Dabble ----------------------------------------//
   Dabble.processInput(); // this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
-  while (Dabble.isAppConnected())
+  if (Dabble.isAppConnected())
   {
+    if (GamePad.isUpPressed())
+    {
+      Serial.print("Up");
+      moveForward(255);
+    }
+    else if (GamePad.isDownPressed())
+    {
+      moveBackward(255);
+    }
+    else if (GamePad.isLeftPressed())
+    {
+      moveSidewaysLeft(255);
+    }
+    else if (GamePad.isRightPressed())
+    {
+      moveSidewaysRight(255);
+    }
+    else
+    {
+      stopMovement();
+    }
 
     // check connection by turning on BuildIn_led
-    if (printed)
+    for (int i; i < 1; i += 1)
     {
-      led_conection();
-      printed = false;
+      builtinled_conection(true);
+      Serial.println("Dabble cconnected...");
+      delay(3);
     }
-    switch (getButtonPressed())
-    {
-    case UP:
-      moveForward(255);
-      break;
-    case DOWN:
-      moveBackward(255);
-      break;
-    case LEFT:
-      moveSidewaysLeft(255);
-      break;
-    case RIGHT:
-      moveSidewaysRight(255);
-      break;
-
-    default:
-      stopMovement();
-      break;
-    }
-    // delay(3);
     return;
   }
 
-  //------------------------------ Using Ps4 Controller ----------------------------------------//
-  while (PS4.isConnected())
+//------------------------------ Using Ps4 Controller ----------------------------------------//
+b:
+  led.loop();
+  if (PS4.isConnected())
   {
-    switch (getButtonPressed())
+    for (int i; i < 1; i += 1)
     {
-    case UP:
-
-      break;
-
-    default:
-      break;
+      builtinled_conection(true);
+      Serial.println("Dabble cconnected...");
+      delay(3);
     }
+    goto b;
   }
 }
