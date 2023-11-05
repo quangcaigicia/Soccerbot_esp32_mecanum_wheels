@@ -20,10 +20,20 @@
 // create an ezLED object for the LED
 ezLED led(BUILTIN_LED);
 
+int buttonState = 0;     // variable for reading the pushbutton status
+int lastButtonState = 0; // variable for storing the last button state
+int mode = 0;            // variable for tracking the mode
+
+unsigned long lastDebounceTime = 0; // the last time the button state changed
+unsigned long debounceDelay = 50;   // the debounce time in milliseconds
+
 Motor motor1(19, 18, 22, 0); // Direction pin and pwm channel for motor A
 Motor motor2(17, 16, 23, 1); // Direction pin and pwm channel for motor B
 Motor motor3(33, 25, 15, 2); // Direction pin and pwm channel for motor C
 Motor motor4(27, 26, 14, 3); // Direction pin and pwm channel for motor C
+int speed = 200;
+bool deviceConnected = false;
+int joystick_mode = 0;
 
 //------------------------------ Removing Paired Devices ----------------------------------------//
 // Create a BluetoothSerial object
@@ -93,13 +103,14 @@ void builtinled_conection(bool deviceConnected)
   {
     Serial.print("Connected...");
     led.blinkInPeriod(250, 750, 5000);
-    delay(500);
+    delay(3);
   }
   else
   {
     Serial.print("Disconnected...");
     led.blinkInPeriod(250, 750, 5000);
-    delay(500);
+    deviceConnected = false;
+    delay(3);
   }
 }
 
@@ -215,12 +226,39 @@ void movePivotSidewaysLeft(int speed)
   motor2.forward(speed);
 }
 
+void movePivotSidewaysRightReverse(int speed)
+{
+  motor3.backward(speed);
+  motor4.forward(speed);
+}
+
+void movePivotSidewaysLeftReverse(int speed)
+{
+  motor3.forward(speed);
+  motor4.backward(speed);
+}
+
 void stopMovement()
 {
   motor1.stop();
   motor2.stop();
   motor3.stop();
   motor4.stop();
+}
+
+void changeSpeed()
+{
+  if (speed < 255)
+  {
+    speed += 5;
+  }
+  else
+  {
+    speed = 200;
+  }
+  Serial.println("Speed: ");
+  Serial.print(speed);
+  delay(200);
 }
 
 void loop()
@@ -230,40 +268,67 @@ void loop()
   Dabble.processInput(); // this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
   if (Dabble.isAppConnected())
   {
-    if (GamePad.isUpPressed())
+    if (GamePad.isSelectPressed())
     {
-      Serial.print("Up");
-      moveForward(255);
+      joystick_mode = !joystick_mode;
+      delay(200);
     }
-    else if (GamePad.isDownPressed())
+    if (GamePad.isStartPressed())
     {
-      moveBackward(255);
+      changeSpeed();
     }
-    else if (GamePad.isLeftPressed())
+
+    if (!joystick_mode)
     {
-      moveSidewaysLeft(255);
-    }
-    else if (GamePad.isRightPressed())
-    {
-      moveSidewaysRight(255);
+      if (GamePad.isUpPressed())
+      {
+        Serial.print("Up");
+        moveForward(speed);
+      }
+      else if (GamePad.isDownPressed())
+      {
+        moveBackward(speed);
+      }
+      else if (GamePad.isLeftPressed())
+      {
+        moveSidewaysLeft(speed);
+      }
+      else if (GamePad.isRightPressed())
+      {
+        moveSidewaysRight(speed);
+      }
+      else
+      {
+        stopMovement();
+      }
     }
     else
     {
-      stopMovement();
+      int x = GamePad.getx_axis();
+      int y = GamePad.gety_axis();
+      int speed_x = round(GamePad.gety_axis() * 36.42857);
+      if ((-8 < x && x < 8) && (0 < y && y < 8))
+      {
+        moveForward(speed_x);
+      }
+      else
+      {
+        stopMovement();
+      }
     }
 
     // check connection by turning on BuildIn_led
-    for (int i; i < 1; i += 1)
+    if (!deviceConnected)
     {
       builtinled_conection(true);
       Serial.println("Dabble cconnected...");
-      delay(3);
+      deviceConnected = true;
     }
     return;
   }
-
 //------------------------------ Using Ps4 Controller ----------------------------------------//
 b:
+
   led.loop();
   if (PS4.isConnected())
   {
