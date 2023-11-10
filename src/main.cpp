@@ -17,23 +17,22 @@
 // Custom classes
 #include "motor.h"
 
-// create an ezLED object for the LED
-ezLED led(BUILTIN_LED);
+ezLED led(BUILTIN_LED); // create an ezLED object for the LED
 
-int buttonState = 0;     // variable for reading the pushbutton status
-int lastButtonState = 0; // variable for storing the last button state
-int mode = 0;            // variable for tracking the mode
-
-unsigned long lastDebounceTime = 0; // the last time the button state changed
-unsigned long debounceDelay = 50;   // the debounce time in milliseconds
+int buttonState{0};     // variable for reading the pushbutton status
+int lastButtonState{0}; // variable for storing the last button state
+int mode{0};            // variable for tracking the mode
+int speed{200};
+bool deviceConnected{false};
+char *whoConnected = "me";
+int joystick_mode{0};
+unsigned long lastDebounceTime{0}; // the last time the button state changed
+unsigned long debounceDelay{50};   // the debounce time in milliseconds
 
 Motor motor1(19, 18, 22, 0); // Direction pin and pwm channel for motor A
 Motor motor2(17, 16, 23, 1); // Direction pin and pwm channel for motor B
 Motor motor3(33, 25, 15, 2); // Direction pin and pwm channel for motor C
 Motor motor4(27, 26, 14, 3); // Direction pin and pwm channel for motor C
-int speed = 200;
-bool deviceConnected = false;
-int joystick_mode = 0;
 
 //------------------------------ Removing Paired Devices ----------------------------------------//
 // Create a BluetoothSerial object
@@ -71,7 +70,7 @@ void onDisConnect()
 {
   Serial.println("Disconnected!");
 }
-
+// set up ps4 bluetooth mac
 void connectPS4Controller()
 {
   // change mac address to ps4's mac
@@ -80,7 +79,7 @@ void connectPS4Controller()
   PS4.begin("E0:2B:E9:54:91:87");
   Serial.println("Ready PS4.\n");
 }
-
+// set up dabble bluetooth
 void connectDabble()
 {
   Dabble.begin("Dr.Hiển");
@@ -96,16 +95,17 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT); // Build in led
   // SerialBT.begin("ESP32-noob");
 }
-
-void builtinled_conection(bool deviceConnected)
+// Blink builtin Led when device is connected
+void builtinled_conection(
+    bool deviceConnected, char *whoConnected = "me")
 {
-  if (deviceConnected == true)
+  if (deviceConnected == true && whoConnected == "dabble")
   {
     Serial.print("Connected...");
     led.blinkInPeriod(250, 750, 5000);
     delay(3);
   }
-  else
+  else if (deviceConnected == false)
   {
     Serial.print("Disconnected...");
     led.blinkInPeriod(250, 750, 5000);
@@ -246,7 +246,7 @@ void stopMovement()
   motor4.stop();
 }
 
-void changeSpeed()
+void changeSpeed() // changing the speed of motor
 {
   if (speed < 255)
   {
@@ -268,16 +268,17 @@ void loop()
   Dabble.processInput(); // this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
   if (Dabble.isAppConnected())
   {
-    if (GamePad.isSelectPressed())
+    if (GamePad.isSelectPressed()) // switching between button and joystick mode by pressing Select
     {
       joystick_mode = !joystick_mode;
       delay(200);
     }
-    if (GamePad.isStartPressed())
+    if (GamePad.isStartPressed()) // change speed +5 by pressing Start
     {
       changeSpeed();
     }
 
+    // Buttons mode
     if (!joystick_mode)
     {
       if (GamePad.isUpPressed())
@@ -302,7 +303,7 @@ void loop()
         stopMovement();
       }
     }
-    else
+    else // Joystick mode
     {
       int x = GamePad.getx_axis();
       int y = GamePad.gety_axis();
@@ -320,8 +321,7 @@ void loop()
     // check connection by turning on BuildIn_led
     if (!deviceConnected)
     {
-      builtinled_conection(true);
-      Serial.println("Dabble cconnected...");
+      builtinled_conection(true, "dabble");
       deviceConnected = true;
     }
     return;
