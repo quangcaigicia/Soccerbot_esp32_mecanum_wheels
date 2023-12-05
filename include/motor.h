@@ -10,9 +10,15 @@ public:
   void backward(int speed);
   // Method to stop the motor
   void stop();
-  // Method to move the motor depend on the given speed
-  // and constrain the speed in a range
-  void set_motor(int speed, int min, int max);
+  // Method to move the motor omnidirectionally using joystick data
+  // x, y, rx, ry: Left and right joystick data
+  // Constrain the speed in a range
+  // in_min, in_max: data value from joystick
+  // out_min, out_max: PWM value
+  // min_opperate_speed { Min_V = Max_V * (min_speed / 255_pwm) }
+  // speed_min_max: constrain motor speed
+  // F.L, F.R, R.L, R.R: Motor_number respectively
+  void set_motor_omnidirectional(int x, int y, int rx, int ry, int in_min, int in_max, int min_opperate_speed, int speed_min, int speed_max, int motor_number);
 
 private:
   // The pin numbers for the motor
@@ -20,4 +26,5 @@ private:
   int _pinBackward;
   int _pwmChannel;
   int _enablepin_EN;
+  //
 };
