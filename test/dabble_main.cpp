@@ -1,66 +1,29 @@
-#include <Arduino.h>
-#include <BluetoothSerial.h>
-#include <PS4Controller.h>
+//** This code power the esp32 that uses 2 driver to controll 4 wheel independently
+//** PS4 and Dabble compatable
+//** To calculate the speed for your motor min_V = max_V * speed / 255 <<-- you can change this value by changing the resolution in motor.cpp
+//**
 
+#include <Arduino.h>
 
 // DabbleESP32
 #define CUSTOM_SETTINGS
 #define INCLUDE_GAMEPAD_MODULE
 #include <DabbleESP32.h>
 
-// Remove_Paired_Devices
-#include "esp_bt_main.h"
-#include "esp_bt_device.h"
-#include "esp_gap_bt_api.h"
-#include "esp_err.h"
-
 // Custom headers
 #include "motor.h"
 
-
-int mode{0}; // changing controlled mode
-int speed{80};
-bool deviceConnected{false};
-int joystick_mode{0};
-unsigned long lastDebounceTime{0}; // the last time the button state changed
-unsigned long debounceDelay{50};   // the debounce time in milliseconds
+int16_t speed{0};
+int8_t joystick_mode{0};
 
 /* Define the variables for the joystick values
    x, y are left joystick and rx, ry are for right joystick*/
-float x{0}, y{0}, rx{0}, ry{0};
-  
+float x{0}, y{0}, rx{0};
 
-Motor motor1(16, 17, 4, 1);  // Direction pin and pwm channel for motor A
-Motor motor2(5, 18, 19, 2);  // Direction pin and pwm channel for motor B
-Motor motor3(14, 27, 12, 3); // Direction pin and pwm channel for motor C
-Motor motor4(21, 22, 23, 4); // Direction pin and pwm channel for motor C
-
-//------------------------------ Removing Paired Devices ----------------------------------------//
-// Create a BluetoothSerial object
-BluetoothSerial SerialBT;
-
-// Define the MAC address of the ESP32
-const char *mac = "d8:bc:38:e2:0b:fc";
-
-// Define a function to remove the paired devices
-void removePairedDevices()
-{
-    // Get the number of bonded devices
-    int count = esp_bt_gap_get_bond_device_num();
-    // Create an array to store the device addresses
-    uint8_t pairedDeviceBtAddr[20][6];
-    // Get the list of bonded devices
-    esp_bt_gap_get_bond_device_list(&count, pairedDeviceBtAddr);
-    // Loop through the list and remove each device
-    for (int i = 0; i < count; i++)
-    {
-        // Remove the device and check the return value
-        esp_err_t result = esp_bt_gap_remove_bond_device(pairedDeviceBtAddr[i]);
-        // Print the result to the serial monitor
-        Serial.print("Removing device “); Serial.print(i + 1); Serial.print(”: ");
-        Serial.println(result == ESP_OK ? "Success" : "Failed");
-    }
-}
+Motor motor1(17, 5, 16, 1);  // Direction pin and pwm channel for motor A
+Motor motor2(27, 26, 14, 2);  // Direction pin and pwm channel for motor B
+Motor motor3(19, 18, 21, 3); // Direction pin and pwm channel for motor C
+Motor motor4(23, 22, 25, 4); // Direction pin and pwm channel for motor C
 
 // PS4 check connection
 void onConnect()
@@ -72,14 +35,14 @@ void onDisConnect()
     Serial.println("Disconnected!");
 }
 // set up ps4 bluetooth mac
-void connectPS4Controller()
-{
-    // change mac address to ps4's mac
-    PS4.attachOnConnect(onConnect);
-    PS4.attachOnDisconnect(onDisConnect);
-    PS4.begin("E0:2B:E9:54:91:87");
-    Serial.println("Ready PS4.\n");
-}
+// void connectPS4Controller()
+// {
+//     // change mac address to ps4's mac
+//     PS4.attachOnConnect(onConnect);
+//     PS4.attachOnDisconnect(onDisConnect);
+//     PS4.begin("E0:2B:E9:54:91:87");
+//     Serial.println("Ready PS4.\n");
+// }
 // set up dabble bluetooth
 void connectDabble()
 {
@@ -90,11 +53,7 @@ void connectDabble()
 void setup()
 {
     Serial.begin(115200);
-    removePairedDevices();
     connectDabble();
-    connectPS4Controller();
-    pinMode(LED_BUILTIN, OUTPUT); // Build in led
-    // SerialBT.begin("ESP32-noob");
 }
 
 //------------------------------ Motor Functions ----------------------------------------//
@@ -232,13 +191,13 @@ void stopMovement()
 // changing the speed of motor
 void changeSpeed()
 {
-    if (speed < 255)
+    if (speed == 255)
     {
-        speed += 5;
+        speed = 75;
     }
     else
     {
-        speed = 5;
+        speed = 255;
     }
     Serial.println("Speed: ");
     Serial.print(speed);
@@ -247,8 +206,21 @@ void changeSpeed()
 
 
 
+// Define a function to map a value from one range to another
+int16_t map_value(int8_t x, int8_t in_min, int8_t in_max, int16_t out_min, int16_t out_max)
+{
+    // For some reason, Dabble joystick data is different (example: Max_-x = 7, Max_x = 6)
+    // Constrain input value
+    if (x > 6)
+    {
+        x = 6;
+    }
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 void loop()
 {
+
     //------------------------------ Using Dabble ----------------------------------------//
     Dabble.processInput(); // this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
     if (Dabble.isAppConnected())
@@ -262,56 +234,44 @@ void loop()
         {
             changeSpeed();
         }
-
-        // Buttons mode
-        if (!joystick_mode)
-        {
-            if (GamePad.isUpPressed())
-            {
-                moveForward(speed);
-            }
-            else if (GamePad.isDownPressed())
-            {
-                moveBackward(speed);
-            }
-            else if (GamePad.isLeftPressed())
-            {
-                moveSidewaysLeft(speed);
-            }
-            else if (GamePad.isRightPressed())
-            {
-                moveSidewaysRight(speed);
-            }
-            else
-            {
-                stopMovement();
-            }
+            // joystick mode using angle //
+        if (joystick_mode){
+            int16_t a = GamePad.getAngle();
+            int16_t speed = map_value(GamePad.getRadius(),0,6,0,255);
+            if (a>=75 && a<= 105){moveForward(speed);Serial.print(a);Serial.print(speed);}
+            else if (a >= 120 && a <= 150){moveDiagonalForwardLeft(speed);}
+            else if (a >= 165 && a <= 195){moveSidewaysLeft(speed);}
+            else if (a >= 210 && a <= 240){moveDiagonalBackwardLeft(speed);}
+            else if (a >= 255 && a <= 285){moveBackward(speed);}
+            else if (a >= 300 && a <= 330){moveDiagonalBackwardRight(speed);}
+            else if (a >= 345 && a <= 15){moveSidewaysRight(speed);}
+            else if (a >= 30 && a <= 60){moveDiagonalForwardRight(speed);}
+            else stopMovement();
         }
-        else // Joystick mode
+
+    // joystick mode using xy  // 
+        else 
         {
+            if (GamePad.isCirclePressed())
+            {
+                rx = speed;
+            }
+            else if (GamePad.isSquarePressed())
+            {
+                rx = -speed;
+            }
+            else {
+                rx = 0;
+            }
+
             x = GamePad.getXaxisData();
             y = GamePad.getYaxisData();
-            motor1.set_motor_omnidirectional(x, y, 0, 0, -6, 6, -120, 120, 80, -150, 150, 1);
-            motor2.set_motor_omnidirectional(x, y, 0, 0, -6, 6, -120, 120, 80, -150, 150, 2);
-            motor3.set_motor_omnidirectional(x, y, 0, 0, -6, 6, -120, 120, 80, -150, 150, 3);
-            motor4.set_motor_omnidirectional(x, y, 0, 0, -6, 6, -120, 120, 80, -150, 150, 4);
+            motor1.set_motor_omnidirectional(x, y, rx, 0, -6, 6, 75, -140, 140, 1);
+            motor2.set_motor_omnidirectional(x, y, rx, 0, -6, 6, 75, -140, 140, 2);
+            motor3.set_motor_omnidirectional(x, y, rx, 0, -6, 6, 75, -140, 140, 3);
+            motor4.set_motor_omnidirectional(x, y, rx, 0, -6, 6, 75, -140, 140, 4);
 
-            if (GamePad.isTrianglePressed())
-            {
-                digitalWrite(26, HIGH);
-            }
-            else
-            {
-                digitalWrite(26, LOW);
-            }
+          
         }
-        return;
-    }
-//------------------------------ Using Ps4 Controller ----------------------------------------//
-b:
-
-    if (PS4.isConnected())
-    {
-        goto b;
     }
 }
