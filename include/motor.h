@@ -3,7 +3,7 @@ class Motor
 public:
   // Constructor that sets pwmProperties, the pin modes and initializes the pins to low
   // Pass in 0 for the last 2 parameters if you don't need to change the power
-  Motor(int pinForward, int pinBackward, int enablepin_EN, int pwmChannel);
+  Motor(int pinForward,int pinBackward,int enablepin_EN,int pwmChannel);
   // Method to move the motor forward with a given speed (0-255)
   void forward(int speed);
   // Method to move the motor backward with a given speed (0-255)
@@ -18,8 +18,7 @@ public:
   // min_opperate_speed { Min_V = Max_V * (min_speed / 255_pwm) }
   // speed_min_max: constrain motor speed
   // F.L, F.R, R.L, R.R: Motor_number respectively
-  void set_motor_omnidirectional(int x, int y, int rx, int ry, int in_min, int in_max, int min_opperate_speed, int speed_min, int speed_max, int motor_number);
-
+  int set_motor_omnidirectional(int x, int y, int rx, int in_min, int in_max, int min_opperate_speed, int speed_max, int motor_number);
 private:
   // The pin numbers for the motor
   int _pinForward;
