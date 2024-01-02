@@ -14,7 +14,7 @@ Motor::Motor(int pinForward,int pinBackward,int enablepin_EN,int pwmChannel)
     // Setting PWM properties
     _pwmChannel = pwmChannel;
     _enablepin_EN = enablepin_EN;
-    const int freq = 1000;
+    const int freq = 2000; // default 1000
     const int resolution = 8;
     // configure LED PWM functionalitites
     ledcSetup(_pwmChannel, freq, resolution);

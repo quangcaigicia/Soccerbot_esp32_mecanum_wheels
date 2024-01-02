@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 // #include <PS4Controller.h>
-#include <ezLED.h>
+// #include <ezLED.h>
 
 // DabbleESP32
 #define CUSTOM_SETTINGS
@@ -15,7 +15,7 @@
 // Custom headers
 #include "motor.h"
 
-ezLED led(BUILTIN_LED); // create an ezLED object for the LED
+// ezLED led(BUILTIN_LED); // create an ezLED object for the LED
 
 // #include <millisDelay.h>
 // bool solanoid_auto{false};
@@ -26,10 +26,12 @@ ezLED led(BUILTIN_LED); // create an ezLED object for the LED
 // millisDelay solanoid_onceDelay{};
 
 int const solanoid{15};
-int speed{255};
+int speed{195};
 bool deviceConnected{false};
 bool joystick_mode{true};
+bool turbo_boost{false};
 
+# define LED_BUILTIN 2
 
 /* Define the variables for the joystick values
    x, y are left joystick and rx, ry are for right joystick*/
@@ -67,209 +69,210 @@ Motor motor4(18, 19, 5, 4);  // Direction pin and pwm channel for motor C
 void connectDabble()
 {
     Dabble.begin("Bé Thảo Tóc Vàng");
-    Serial.println("Ready Dabble.\n");
+    // Serial.println("Ready Dabble.\n");
 }
 
 void setup()
 {
-    Serial.begin(115200);
+    // Serial.begin(115200);
     connectDabble();
     // connectPS4Controller();
     pinMode(LED_BUILTIN, OUTPUT); // Build in led
     pinMode(solanoid, OUTPUT);
     digitalWrite(solanoid, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
 }
 
-//------------------------------ Motor Functions ----------------------------------------//
-void moveForward(int speed)
-{
-    motor1.forward(speed);
-    motor2.forward(speed);
-    motor3.forward(speed);
-    motor4.forward(speed);
-}
+// //------------------------------ Motor Functions ----------------------------------------//
+// void moveForward(int speed)
+// {
+//     motor1.forward(speed);
+//     motor2.forward(speed);
+//     motor3.forward(speed);
+//     motor4.forward(speed);
+// }
 
-void moveBackward(int speed)
-{
-    motor1.backward(speed);
-    motor2.backward(speed);
-    motor3.backward(speed);
-    motor4.backward(speed);
-}
+// void moveBackward(int speed)
+// {
+//     motor1.backward(speed);
+//     motor2.backward(speed);
+//     motor3.backward(speed);
+//     motor4.backward(speed);
+// }
 
-void moveSidewaysRight(int speed)
-{
-    motor1.forward(speed);
-    motor2.backward(speed);
-    motor3.backward(speed);
-    motor4.forward(speed);
-}
+// void moveSidewaysRight(int speed)
+// {
+//     motor1.forward(speed);
+//     motor2.backward(speed);
+//     motor3.backward(speed);
+//     motor4.forward(speed);
+// }
 
-void moveSidewaysLeft(int speed)
-{
-    motor1.backward(speed);
-    motor2.forward(speed);
-    motor3.forward(speed);
-    motor4.backward(speed);
-}
+// void moveSidewaysLeft(int speed)
+// {
+//     motor1.backward(speed);
+//     motor2.forward(speed);
+//     motor3.forward(speed);
+//     motor4.backward(speed);
+// }
 
-// Move Diagonal
-void moveDiagonalForwardRight(int speed)
-{
-    motor1.forward(speed);
-    motor2.stop();
-    motor3.stop();
-    motor4.forward(speed);
-}
+// // Move Diagonal
+// void moveDiagonalForwardRight(int speed)
+// {
+//     motor1.forward(speed);
+//     motor2.stop();
+//     motor3.stop();
+//     motor4.forward(speed);
+// }
 
-void moveDiagonalForwardLeft(int speed)
-{
-    motor1.stop();
-    motor2.forward(speed);
-    motor3.forward(speed);
-    motor4.stop();
-}
+// void moveDiagonalForwardLeft(int speed)
+// {
+//     motor1.stop();
+//     motor2.forward(speed);
+//     motor3.forward(speed);
+//     motor4.stop();
+// }
 
-void moveDiagonalBackwardRight(int speed)
-{
-    motor1.stop();
-    motor2.backward(speed);
-    motor3.backward(speed);
-    motor4.stop();
-}
+// void moveDiagonalBackwardRight(int speed)
+// {
+//     motor1.stop();
+//     motor2.backward(speed);
+//     motor3.backward(speed);
+//     motor4.stop();
+// }
 
-void moveDiagonalBackwardLeft(int speed)
-{
-    motor1.backward(speed);
-    motor2.stop();
-    motor3.stop();
-    motor4.backward(speed);
-}
+// void moveDiagonalBackwardLeft(int speed)
+// {
+//     motor1.backward(speed);
+//     motor2.stop();
+//     motor3.stop();
+//     motor4.backward(speed);
+// }
 
-// Pivot ( on one side)
-void movePivotForwardRight(int speed)
-{
-    motor1.forward(speed);
-    motor2.stop();
-    motor3.forward(speed);
-    motor4.stop();
-}
+// // Pivot ( on one side)
+// void movePivotForwardRight(int speed)
+// {
+//     motor1.forward(speed);
+//     motor2.stop();
+//     motor3.forward(speed);
+//     motor4.stop();
+// }
 
-void movePivotForwardLeft(int speed)
-{
-    motor1.stop();
-    motor2.forward(speed);
-    motor3.stop();
-    motor4.forward(speed);
-}
+// void movePivotForwardLeft(int speed)
+// {
+//     motor1.stop();
+//     motor2.forward(speed);
+//     motor3.stop();
+//     motor4.forward(speed);
+// }
 
-void movePivotBackwardRight(int speed)
-{
-    motor1.backward(speed);
-    motor2.stop();
-    motor3.backward(speed);
-    motor4.stop();
-}
+// void movePivotBackwardRight(int speed)
+// {
+//     motor1.backward(speed);
+//     motor2.stop();
+//     motor3.backward(speed);
+//     motor4.stop();
+// }
 
-void movePivotBackwardLeft(int speed)
-{
-    motor1.stop();
-    motor2.backward(speed);
-    motor3.stop();
-    motor4.backward(speed);
-}
+// void movePivotBackwardLeft(int speed)
+// {
+//     motor1.stop();
+//     motor2.backward(speed);
+//     motor3.stop();
+//     motor4.backward(speed);
+// }
 
-// Rotate
-void moveRotateRight(int speed)
-{
-    motor1.forward(speed);
-    motor2.backward(speed);
-    motor3.forward(speed);
-    motor4.backward(speed);
-}
+// // Rotate
+// void moveRotateRight(int speed)
+// {
+//     motor1.forward(speed);
+//     motor2.backward(speed);
+//     motor3.forward(speed);
+//     motor4.backward(speed);
+// }
 
-void moveRotateLeft(int speed)
-{
-    motor1.backward(speed);
-    motor2.forward(speed);
-    motor3.backward(speed);
-    motor4.forward(speed);
-}
-// Pitvot Sideways
-void movePivotSidewaysRight(int speed)
-{
-    motor1.forward(speed);
-    motor2.backward(speed);
-    motor3.stop();
-    motor4.stop();
-}
+// void moveRotateLeft(int speed)
+// {
+//     motor1.backward(speed);
+//     motor2.forward(speed);
+//     motor3.backward(speed);
+//     motor4.forward(speed);
+// }
+// // Pitvot Sideways
+// void movePivotSidewaysRight(int speed)
+// {
+//     motor1.forward(speed);
+//     motor2.backward(speed);
+//     motor3.stop();
+//     motor4.stop();
+// }
 
-void movePivotSidewaysLeft(int speed)
-{
-    motor1.backward(speed);
-    motor2.forward(speed);
-    motor3.stop();
-    motor4.stop();
-}
+// void movePivotSidewaysLeft(int speed)
+// {
+//     motor1.backward(speed);
+//     motor2.forward(speed);
+//     motor3.stop();
+//     motor4.stop();
+// }
 
-void movePivotSidewaysRightReverse(int speed)
-{ 
-    motor1.stop();
-    motor2.stop();
-    motor3.backward(speed);
-    motor4.forward(speed);
-}
+// void movePivotSidewaysRightReverse(int speed)
+// { 
+//     motor1.stop();
+//     motor2.stop();
+//     motor3.backward(speed);
+//     motor4.forward(speed);
+// }
 
-void movePivotSidewaysLeftReverse(int speed)
-{
-    motor1.stop();
-    motor2.stop();
-    motor3.forward(speed);
-    motor4.backward(speed);
-}
+// void movePivotSidewaysLeftReverse(int speed)
+// {
+//     motor1.stop();
+//     motor2.stop();
+//     motor3.forward(speed);
+//     motor4.backward(speed);
+// }
 
-void stopMovement()
-{
-    motor1.stop();
-    motor2.stop();
-    motor3.stop();
-    motor4.stop();
-}
+// void stopMovement()
+// {
+//     motor1.stop();
+//     motor2.stop();
+//     motor3.stop();
+//     motor4.stop();
+// }
 
-// Blink builtin Led when device is connected
-void builtinled_conection(
-    bool deviceConnected)
-{
-    if (deviceConnected == true)
-    {
-        Serial.print("Connected...");
-        led.blinkInPeriod(250, 750, 5000);
-        delay(3);
-    }
-    else
-    {
-        Serial.print("Disconnected...");
-        led.blinkInPeriod(250, 750, 5000);
-        deviceConnected = false;
-        delay(3);
-    }
-}
+// // Blink builtin Led when device is connected
+// // void builtinled_conection(
+// //     bool deviceConnected)
+// // {
+// //     if (deviceConnected == true)
+// //     {
+// //         Serial.print("Connected...");
+// //         led.blinkInPeriod(250, 750, 5000);
+// //         delay(3);
+// //     }
+// //     else
+// //     {
+// //         Serial.print("Disconnected...");
+// //         led.blinkInPeriod(250, 750, 5000);
+// //         deviceConnected = false;
+// //         delay(3);
+// //     }
+// // }
 
 // Define a function to map a value from one range to another
-int map_value(int x, int in_min, int in_max, int out_min, int out_max)
-{
-    // For some reason, Dabble joystick data is different (example: Max_-x = 7, Max_x = 6)
-    // Constrain input value
-    if (x > in_max)
-    {
-        x = in_max;
-    }
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
+// int map_value(int x, int in_min, int in_max, int out_min, int out_max)
+// {
+//     // For some reason, Dabble joystick data is different (example: Max_-x = 7, Max_x = 6)
+//     // Constrain input value
+//     if (x > in_max)
+//     {
+//         x = in_max;
+//     }
+//     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+// }
 
 void loop()
 {
-    led.loop();
+    // led.loop();
 
     //------------------------------ Using Dabble ----------------------------------------//
     Dabble.processInput(); // this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
@@ -435,13 +438,28 @@ void loop()
     // // joystick mode using xy  //  
     if (joystick_mode)
         {
+            if (GamePad.isSelectPressed() && turbo_boost == false)
+            {
+                speed = 255;
+                digitalWrite(BUILTIN_LED, HIGH);
+                turbo_boost = true;
+                delay(200);
+            }
+            else if (GamePad.isSelectPressed() && turbo_boost == true)
+            {
+                speed = 195;
+                digitalWrite(BUILTIN_LED, LOW);
+                turbo_boost = false;
+                delay(200);
+            }
+            
             if (GamePad.isCirclePressed())
             {
-                rx = 255;
+                rx = speed;
             }
             else if (GamePad.isSquarePressed())
             {
-                rx = -255;
+                rx = -speed;
             }
             else {
                 rx = 0;
@@ -453,11 +471,11 @@ void loop()
             motor3.set_motor_omnidirectional(x, y, rx, -6, 6, 140, 255, 3);
             motor4.set_motor_omnidirectional(x, y, rx, -6, 6, 140, 255, 4);
         }
-        // check connection by turning on BuildIn_led
-        if (!deviceConnected)
-        {
-            builtinled_conection(true);
-        }
-        deviceConnected = true;
+        // // check connection by turning on BuildIn_led
+        // if (!deviceConnected)
+        // {
+        //     builtinled_conection(true);
+        // }
+        // deviceConnected = true;
     }
 }
