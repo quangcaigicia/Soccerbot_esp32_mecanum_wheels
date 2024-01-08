@@ -18,7 +18,7 @@ public:
   // min_opperate_speed { Min_V = Max_V * (min_speed / 255_pwm) }
   // speed_min_max: constrain motor speed
   // F.L, F.R, R.L, R.R: Motor_number respectively
-  int set_motor_omnidirectional(int x, int y, int rx, int in_min, int in_max, int min_opperate_speed, int speed_max, int motor_number);
+  void set_motor_omnidirectional(int x, int y, int rx, int in_min, int in_max, int min_opperate_speed, int speed_max, int motor_number);
 private:
   // The pin numbers for the motor
   int _pinForward;
