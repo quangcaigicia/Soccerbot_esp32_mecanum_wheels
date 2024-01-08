@@ -14,11 +14,11 @@ Motor::Motor(int pinForward,int pinBackward,int enablepin_EN,int pwmChannel)
     // Setting PWM properties
     _pwmChannel = pwmChannel;
     _enablepin_EN = enablepin_EN;
-    const int freq = 1000; // default 30000
+    const int freq = 76; // 75,3-battery,900gram / 2000,2-battery,1700gram
     const int resolution = 8;
     // configure LED PWM functionalitites
     ledcSetup(_pwmChannel, freq, resolution);
-    // attach the channel to the GPIO to be controlled
+    // attach the channel to the GPIO to be controlled / comment this out if you don't need to controll pwm
     ledcAttachPin(enablepin_EN, _pwmChannel);
 }
 // Method to move the motor forward with a given speed
@@ -78,17 +78,25 @@ int constrain_value(int x, int min, int max)
 // Define a function to map a value from one range to another
 float map_value(float x, float in_min, float in_max, float out_min, float out_max)
 {
+    if (x > in_max)
+    {
+        x = in_max;
+    }
+    else if ( x < in_min)
+    {  
+        x = in_min;
+    }
+
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
 // Define a function to calculate the motor speeds from the joystick values
-void calculate_speeds(float x, float y, float rx, float ry, int in_min, int in_max, int out_min, int out_max, int motor_number)
+void calculate_speeds(int x, int y, int rx, int in_min, int in_max, int out_min, int out_max, int motor_number)
 {
     // Map the joystick values from in_min-in_max to your desirer PWM min-max value
     x = map_value(x, in_min, in_max, out_min, out_max);
     y = map_value(y, in_min, in_max, out_min, out_max);
     rx = map_value(rx, in_min, in_max, out_min, out_max);
-    ry = map_value(ry, in_min, in_max, out_min, out_max);
 
     
 
@@ -96,16 +104,16 @@ void calculate_speeds(float x, float y, float rx, float ry, int in_min, int in_m
     switch (motor_number)
     {
     case 1:
-        speed_omnidirectional = round(y + x + rx); // Front-left motor speed
+        speed_omnidirectional = y + x + rx; // Front-left motor speed
         break;
     case 2:
-        speed_omnidirectional = round(y - x - rx); // Front-right motor speed
+        speed_omnidirectional = y - x - rx; // Front-right motor speed
         break;
     case 3:
-        speed_omnidirectional = round(y - x + rx); // Back-left motor speed
+        speed_omnidirectional = y - x + rx; // Back-left motor speed
         break;
     case 4:
-        speed_omnidirectional = round(y + x - rx); // Back-right motor speed
+        speed_omnidirectional = y + x - rx; // Back-right motor speed
         break;
     default:
         break;
@@ -114,11 +122,11 @@ void calculate_speeds(float x, float y, float rx, float ry, int in_min, int in_m
 }
 
 // Method to move the motor omnidirectional using joystick and return the speed
-int Motor::set_motor_omnidirectional(int x, int y, int rx, int ry, int in_min, int in_max, int min_opperate_speed, int speed_min, int speed_max, int motor_number)
+void Motor::set_motor_omnidirectional(int x, int y, int rx, int in_min, int in_max, int min_opperate_speed, int speed_max, int motor_number)
 {
-    out_min = speed_min + min_opperate_speed;
+    out_min = -speed_max + min_opperate_speed;
     out_max = speed_max - min_opperate_speed;
-    calculate_speeds(x, y, rx, ry, in_min, in_max, out_min, out_max, motor_number);
+    calculate_speeds(x, y, rx, in_min, in_max, out_min, out_max, motor_number);
     // Update the speed to where the motor can opperate
     if (min_opperate_speed != 0 && speed_omnidirectional != 0)
     {
@@ -133,7 +141,7 @@ int Motor::set_motor_omnidirectional(int x, int y, int rx, int ry, int in_min, i
     }
 
     // Constrain the speed to the range -255 to 255
-    speed_omnidirectional = constrain_value(speed_omnidirectional, speed_min, speed_max);
+    speed_omnidirectional = constrain_value(speed_omnidirectional, -speed_max, speed_max);
 
 
     // Set the direction and speed of the motor 
@@ -164,6 +172,4 @@ int Motor::set_motor_omnidirectional(int x, int y, int rx, int ry, int in_min, i
     // Serial.print('\t');
     // if (motor_number == 4)
     //     Serial.println();
-
-    return speed_omnidirectional;
 }
