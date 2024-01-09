@@ -26,8 +26,8 @@
 // RemoteXY configurate  
 #pragma pack(push, 1)
 uint8_t RemoteXY_CONF[] =   // 59 bytes
-  { 255,5,0,0,0,52,0,16,24,0,5,32,246,17,35,35,190,25,31,5,
-  32,75,17,35,35,190,25,31,129,0,26,0,46,6,17,84,104,101,32,82,
+  { 255,5,0,0,0,52,0,16,24,0,5,32,242,17,35,35,190,25,31,5,
+  32,79,17,35,35,190,25,31,129,0,26,0,46,6,17,84,104,101,32,82,
   111,117,110,100,32,84,97,98,108,101,0,3,131,39,23,23,8,37,26 };
   
 // this structure defines all the variables and events of your control interface 
@@ -52,7 +52,7 @@ struct {
 
 #include <motor.h>
 
-int min_speed{80};
+int min_speed{70};
 int max_speed{200};
 int x{0}, y{0}, rx{0};
 
@@ -117,8 +117,25 @@ void loop()
 {
   remotexy->handler ();
 
+  // setting speed
+  switch (RemoteXY.select_speed)
+  {
+  case 0:
+    max_speed = 155;
+    min_speed = 80;
+    break;
+  case 1:
+    max_speed = 195;
+    min_speed = 100;
+  case 2:
+    max_speed = 255;
+    min_speed = 120;
+  default:
+    break;
+  }
+
   // setting joystick deadzone
-  if (RemoteXY.joystick_left_x < 20 && RemoteXY.joystick_left_x > -20)
+  if (RemoteXY.joystick_left_x < 15 && RemoteXY.joystick_left_x > -15)
   {
     x = 0;
   }
@@ -126,7 +143,7 @@ void loop()
   {
     x = RemoteXY.joystick_left_x;
   }
-  if (RemoteXY.joystick_left_y < 20 && RemoteXY.joystick_left_y > -20)
+  if (RemoteXY.joystick_left_y < 15 && RemoteXY.joystick_left_y > -15)
   {
     y = 0;
   }
@@ -141,16 +158,6 @@ void loop()
   else
   {
     rx = RemoteXY.joystick_right_x;
-  }
-
-  // Setting speed
-  if (RemoteXY.pushSwitch_1!=0)
-  {
-    max_speed = 255;
-  }
-  else
-  {
-    max_speed = 200;
   }
 
   motor1.set_motor_omnidirectional(x,y,rx,-100,100,min_speed,max_speed,1);
