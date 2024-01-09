@@ -26,9 +26,9 @@
 // RemoteXY configurate  
 #pragma pack(push, 1)
 uint8_t RemoteXY_CONF[] =   // 55 bytes
-  { 255,6,0,0,0,48,0,16,19,0,5,32,246,15,35,35,2,26,31,1,
-  0,76,5,18,18,2,31,0,1,0,58,25,17,17,2,31,0,1,0,96,
-  25,17,17,2,31,0,1,0,76,44,17,17,2,31,0 };
+  { 255,6,0,0,0,48,0,16,19,0,5,32,236,11,41,41,2,26,31,1,
+  0,75,2,18,18,2,31,0,1,0,55,19,24,24,2,31,0,1,0,88,
+  19,24,24,2,31,0,1,0,76,44,17,17,2,31,0 };
   
 // this structure defines all the variables and events of your control interface 
 struct {
@@ -53,8 +53,8 @@ struct {
 
 #include <motor.h>
 
-int min_speed{155};
-int max_speed{255};
+int min_speed{100};
+int max_speed{200};
 int solanoid{15};
 int x{0}, y{0}, rx{0};
 
@@ -73,8 +73,8 @@ void remotexy_connect()
 
     new CRemoteXYConnectionServer (
       new CRemoteXYComm_WiFiPoint (
-        "Be Thao Toc Vang Dang Yeu",       // REMOTEXY_WIFI_SSID
-        "emdilaychongnhe"),        // REMOTEXY_WIFI_PASSWORD
+        "Bé Thảo Tóc Vàng Đáng Yêu",       // REMOTEXY_WIFI_SSID
+        "emdilaychong"),        // REMOTEXY_WIFI_PASSWORD
       6377                  // REMOTEXY_SERVER_PORT
     )
   );
@@ -84,73 +84,140 @@ void remotexy_connect()
   //   RemoteXY_CONF_PROGMEM, 
   //   &RemoteXY, 
   //   new CRemoteXYStream_BLEDevice (
-  //     "Be Thao Toc Vang Dang Yeu"      
+  //     "Bé Thảo Tóc Vàng Đáng Yêu"      
   //   )
   //     );
-  // remotexy->setPassword("emdilaychongnhe");
+  // remotexy->setPassword("emdilaychong");
 
   // Bluetooth Classic
   // remotexy = new CRemoteXY (
   //   RemoteXY_CONF_PROGMEM, 
   //   &RemoteXY, 
   //   new CRemoteXYStream_BluetoothSerial (
-  //     "Be Thao Toc Vang Dang Yeu"      
+  //     "Bé Thảo Tóc Vàng Đáng Yêu"      
   //   )
   // ); 
-  // remotexy->setPassword("emdilaychongnhe");
+  // remotexy->setPassword("emdilaychong");
 }
 
-void setup() 
+void setup()
 {
   remotexy_connect();
   pinMode(solanoid,OUTPUT);
   digitalWrite(solanoid,LOW);
 }
 
+/////////////////////////////////////////////
+//           Motor Functions               //
+/////////////////////////////////////////////
+
+// Move Diagonal
+void moveDiagonalForwardRight(int speed)
+{
+    motor1.forward(speed);
+    motor2.stop();
+    motor3.stop();
+    motor4.forward(speed);
+}
+
+void moveDiagonalForwardLeft(int speed)
+{
+    motor1.stop();
+    motor2.forward(speed);
+    motor3.forward(speed);
+    motor4.stop();
+}
+
+void moveDiagonalBackwardRight(int speed)
+{
+    motor1.stop();
+    motor2.backward(speed);
+    motor3.backward(speed);
+    motor4.stop();
+}
+
+void moveDiagonalBackwardLeft(int speed)
+{
+    motor1.backward(speed);
+    motor2.stop();
+    motor3.stop();
+    motor4.backward(speed);
+}
+
+/////////////////////////////////////////////
+//           END Motor Functions           //
+/////////////////////////////////////////////
+
 void loop() 
 {
   remotexy->handler ();
-  
-  if (RemoteXY.joystick_1_x < 10 && RemoteXY.joystick_1_x > -10)
+
+  if (RemoteXY.pushSwitch_1!=0)
   {
-    x = 0;
+    min_speed = 155;
+    max_speed = 255;
   }
   else
   {
-  x = RemoteXY.joystick_1_x;
+    min_speed = 100;
+    max_speed = 200;
   }
-  if (RemoteXY.joystick_1_y < 10 && RemoteXY.joystick_1_y > -10)
+
+  if (RemoteXY.button_upleft!=0)
+  {
+    moveDiagonalForwardLeft(max_speed);
+  }
+  else if(RemoteXY.button_upright!=0)
+  {
+    moveDiagonalForwardRight(max_speed);
+  }
+  else if (RemoteXY.button_downleft!=0)
+  {
+    moveDiagonalBackwardLeft(max_speed);
+  }
+  else if (RemoteXY.button_downright!=0)
+  {
+    moveDiagonalBackwardRight(max_speed);
+  }
+  else
+  {
+    if (RemoteXY.button_left!=0)
+  {
+    x = -100;
+  }
+  else if (RemoteXY.button_right!=0)
+  {
+    x = 100;
+  }
+  else
+  {
+    x = 0;
+  }
+
+  if (RemoteXY.slider_left <= 10 && RemoteXY.slider_left >= -10)
   {
     y = 0;
   }
   else
   {
-  y = RemoteXY.joystick_1_y;
+    y = RemoteXY.slider_left;
   }
-
-  if (RemoteXY.button_1!=0)
-  {
-    digitalWrite(solanoid,HIGH);
-  }
-  else
-  {
-    digitalWrite(solanoid,LOW);
-  }
-  if (RemoteXY.button_2!=0)
-  {
-    rx = -80;
-  }
-  else if(RemoteXY.button_3!=0)
-  {
-    rx = 80;
-  }
-  else
+  if (RemoteXY.slider_right <= -10 && RemoteXY.slider_right >= 10)
   {
     rx = 0;
   }
+  else
+  {
+    rx = RemoteXY.slider_right;
+  }
+  
+  motor1.set_motor_omnidirectional(x,y,rx,-100,100,min_speed,max_speed,1);
+  motor2.set_motor_omnidirectional(x,y,rx,-100,100,min_speed,max_speed,2);
+  motor3.set_motor_omnidirectional(x,y,rx,-100,100,min_speed,max_speed,3);
+  motor4.set_motor_omnidirectional(x,y,rx,-100,100,min_speed,max_speed,4);
+  }
 
-  motor1.set_motor_omnidirectional(x, y, rx, -100, 100, min_speed, max_speed, 1);
-  motor2.set_motor_omnidirectional(x, y, rx, -100, 100, min_speed, max_speed, 2);
-  motor3.set_motor_omnidirectional(x, y, rx, -100, 100, min_speed, max_speed, 3);
-  motor4.set_motor_omnidirectional(x, y, rx, -100, 100, min_speed, max_speed, 4);
+
+
+  
 }
